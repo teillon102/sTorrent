@@ -3,8 +3,8 @@
 import dgram from 'dgram';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import torrentParser from './torrent-parser';
-import util from './util';
+import * as torrentParser from './torrent-parser.js';
+import * as util from './util.js';
 
 export function getPeers(torrent, callback) {
     const socket = dgram.createSocket('udp4');
@@ -31,11 +31,15 @@ export function getPeers(torrent, callback) {
 
 function udpSend(socket, message, rawUrl, callback = () => {}) {
     const url = new URL(rawUrl);
-    socket.send(message, 0, message.length, url.port, url.hostname, callback);
+    const port = url.port ? parseInt(url.port) : 6969; // Fallback default
+    console.log('Tracker URL:', url.href, 'Port:', url.port);
+    socket.send(message, 0, message.length, port, url.hostname, callback);
 }
 
 function respType(resp) {
-  // ...
+  const action = resp.readUInt32BE(0);
+  if (action === 0) return 'connect';
+  if (action === 1) return 'announce';
 }
 
   /* 

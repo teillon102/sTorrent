@@ -1,8 +1,8 @@
-import crypto from 'crypto.js';
+import crypto from 'crypto';
 
 let id = null;
 
-function genId() {
+export function genId() {
     if (!id) {
         id = crypto.randomBytes(20);
         Buffer.from('-ST0001-').copy(id, 0);
