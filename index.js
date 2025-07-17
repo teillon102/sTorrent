@@ -1,6 +1,6 @@
 import fs from 'fs';
 import bencode from 'bencode';
-import { getPeers } from './tracker.js';
+import { getPeers } from './src/tracker.js';
 
 const torrent = bencode.decode(fs.readFileSync('movie.torrent'));
 
