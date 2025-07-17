@@ -24,6 +24,7 @@ export function getPeers(torrent, callback) {
         } else if (respType(response) === 'announce') {
             // 4. receive and parse announce response
             const announceResp = parseAnnounceResp(response);
+            console.log('Peers parsed:', announceResp.peers.length);
             // 5. return peers
             callback(announceResp.peers);
         }
@@ -33,7 +34,7 @@ export function getPeers(torrent, callback) {
 function udpSend(socket, message, rawUrl, callback = () => {}) {
     const url = new URL(rawUrl);
     const port = url.port ? parseInt(url.port) : 6969; // Fallback default
-    console.log('Tracker URL:', url.href, 'Port:', url.port);
+    console.log('Tracker URL:', url.href, 'Port:', port);
     socket.send(message, 0, message.length, port, url.hostname, callback);
 }
 
@@ -53,15 +54,13 @@ function respType(resp) {
 function buildConnReq() {
   const buf = Buffer.alloc(16);
 
-  // connection_id
-  buf.writeUInt32BE(0x417, 0);
+  buf.writeUInt32BE(0x417, 0); // connection_id
   buf.writeUInt32BE(0x27101980, 4);
-  // action
-  buf.writeUInt32BE(0, 8);
-  // transaction_id
-  crypto.randomBytes(4).copy(buf, 12);
-
-  console.log ("buildConnReq buffer: " + buf + " buffer size: " + buf.length); //debug
+  buf.writeUInt32BE(0, 8); // action
+  const transactionId = crypto.randomBytes(4); //transaction id
+  transactionId.copy(buf, 12);
+  console.log('Connect transactionId:', transactionId.toString('hex')); //debug
+  console.log ("buildConnReq buffer: ", buf, " buffer size: ", buf.length); //debug
   return buf;
 }
 
@@ -73,6 +72,10 @@ function buildConnReq() {
     16
   */
 function parseConnResp(resp) {
+  //debug
+  const transactionId = resp.slice(4, 8);
+  console.log('Connect response transactionId:', transactionId.toString('hex'));
+
   return {
     action: resp.readUInt32BE(0),
     transactionId: resp.readUInt32BE(4),
@@ -103,7 +106,9 @@ function buildAnnounceReq(connId, torrent, port=6881) {
   const buf = Buffer.allocUnsafe(98);
   connId.copy(buf, 0); // connection id
   buf.writeUInt32BE(1, 8); // action
-  crypto.randomBytes(4).copy(buf, 12); // transaction id
+  const transactionId = crypto.randomBytes(4); // transaction id
+  transactionId.copy(buf, 12);
+  console.log('Announce transactionId:', transactionId.toString('hex'));
   infoHash(torrent).copy(buf, 16); // info hash
   genId().copy(buf, 36); // peerId
   Buffer.alloc(8).copy(buf, 56); // downloaded
@@ -130,6 +135,10 @@ function buildAnnounceReq(connId, torrent, port=6881) {
     20 + 6 * N
   */
 function parseAnnounceResp(resp) {
+  //debug
+  const transactionId = resp.slice(4, 8);
+  console.log('Announce response transactionId:', transactionId.toString('hex'));
+
   return {
     action: resp.readUInt32BE(0),
     transactionId: resp.readUInt32BE(4),
