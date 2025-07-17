@@ -3,12 +3,13 @@
 import dgram from 'dgram';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import * as torrentParser from './torrent-parser.js';
-import * as util from './util.js';
+import { size, infoHash } from './torrent-parser.js';
+import { genId } from './util.js';
 
 export function getPeers(torrent, callback) {
     const socket = dgram.createSocket('udp4');
     const url = new URL(Buffer.from(torrent.announce).toString('utf8'));
+    console.log('Url from torrent.announce: ' + url); //debug
 
     // 1. send connect request
     udpSend(socket, buildConnReq(), url);
@@ -60,6 +61,7 @@ function buildConnReq() {
   // transaction_id
   crypto.randomBytes(4).copy(buf, 12);
 
+  console.log ("buildConnReq buffer: " + buf + " buffer size: " + buf.length); //debug
   return buf;
 }
 
@@ -102,10 +104,10 @@ function buildAnnounceReq(connId, torrent, port=6881) {
   connId.copy(buf, 0); // connection id
   buf.writeUInt32BE(1, 8); // action
   crypto.randomBytes(4).copy(buf, 12); // transaction id
-  torrentParser.infoHash(torrent).copy(buf, 16); // info hash
-  util.genId().copy(buf, 36); // peerId
+  infoHash(torrent).copy(buf, 16); // info hash
+  genId().copy(buf, 36); // peerId
   Buffer.alloc(8).copy(buf, 56); // downloaded
-  torrentParser.size(torrent).copy(buf, 54); // left
+  size(torrent).copy(buf, 64); // left
   Buffer.alloc(8).copy(buf, 72); // uploaded
   buf.writeUint32BE(0, 80); // event
   buf.writeUint32BE(0, 84); // IP address
