@@ -1,0 +1,19 @@
+{
+  "name": "storrent",
+  "version": "1.0.0",
+  "description": "Personal torrent client",
+  "repository": {
+    "type": "git",
+    "url": "sTorrent"
+  },
+  "license": "ISC",
+  "author": "Spencer Teillon",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bencode": "^4.0.0"
+  }
+}
