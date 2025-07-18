@@ -13,18 +13,22 @@ export function getPeers(torrent, callback) {
 
     // 1. send connect request
     udpSend(socket, buildConnReq(), url);
+    console.log("^^^^Connect request sent^^^^")
 
     socket.on('message', response => {
         if (respType(response) === 'connect') {
             // 2. receive and parse connect response
             const connResp = parseConnResp(response);
+            console.log("^^^^Connect Response^^^^")
             // 3. send announce request
             const announceReq = buildAnnounceReq(connResp.connectionId, torrent);
             udpSend(socket, announceReq, url);
+            console.log("^^^^Announce request sent^^^^")
         } else if (respType(response) === 'announce') {
             // 4. receive and parse announce response
             const announceResp = parseAnnounceResp(response);
             console.log('Peers parsed:', announceResp.peers.length);
+            console.log("^^^^Announce Response^^^^")
             // 5. return peers
             callback(announceResp.peers);
         }

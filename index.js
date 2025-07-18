@@ -1,9 +1,6 @@
-import fs from 'fs';
-import bencode from 'bencode';
-import { getPeers } from './src/tracker.js';
+import download from './src/download.js'
+import { open } from './src/torrent-parser.js'
 
-const torrent = bencode.decode(fs.readFileSync('movie.torrent'));
+const torrent = open(process.argv[2]);
 
-getPeers(torrent, peers => {
-    console.log('list of peers', peers);
-})
+download(torrent);
