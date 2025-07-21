@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import torrentParser from './torrent-parser.js';
+import { infoHash } from './torrent-parser.js';
 import { genId} from '../util.js';
 
 //https://wiki.theory.org/BitTorrentSpecification#Messages
@@ -20,7 +20,7 @@ export function buildHandshake(torrent){
     buf.writeUInt8(19, 0); // pstrlen
     buf.write('BitTorrent Protocol'); // pstr
     buf.writeBigUInt64BE(0, 20) // reserved
-    torrentParser.infoHash(torrent).copy(buf, 28); // info hash
+    infoHash(torrent).copy(buf, 28); // info hash
     buf.write(genId()); // peer Id
 
     return buf;
@@ -177,4 +177,23 @@ export function buildPort(payload){
     buf.writeUInt16BE(payload, 5); // listen-port
 
     return buf;
+}
+
+export function parse(msg){
+    const id = msg.length > 4 ? msg.readInt8 : null;
+    let payload = msg.length > 5 ? msg.slice(5) : null;
+    if (id === 6 || id === 7 || id === 8) {
+        const rest = payload.slice(8);
+        payload = {
+            index : payload.readInt32BE(0),
+            begin : payload.readInt32BE(4)
+        };
+        payload[id = 7 ? 'block' : 'length'] = rest;
+    }
+
+    return {
+        size: msg.readInt32BE(0),
+        id: id,
+        payload: payload 
+    };
 }
